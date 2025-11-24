@@ -1,112 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EduMatrix – Admin Dashboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EduMatrix — Admin</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="supabase.js"></script>
-  <script src="admin.js" defer></script>
+  <!-- styles (use the styles.css you already have) -->
+  <link rel="stylesheet" href="/styles.css">
+
+  <!-- Supabase v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- your client config (absolute path recommended for Vercel) -->
+  <script src="/supabase.js"></script>
+
+  <!-- admin logic (defer so DOM is ready) -->
+  <script src="/admin.js" defer></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: #eef3ff;
-    }
-
-    .topbar {
-      background: #0b57d0;
-      padding: 16px;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      border-radius: 0 0 20px 20px;
-    }
-
-    /* ========== MOBILE FRIENDLY LAYOUT ========== */
-    .wrapper {
-      padding: 12px;
-    }
-
-    .sidebar {
-      background: white;
-      padding: 15px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
-    }
-
-    .menu-btn {
-      padding: 12px;
-      margin-bottom: 10px;
-      background: #f8f9ff;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .menu-btn:hover {
-      background: #e6ecff;
-    }
-
-    .main-content {
-      background: white;
-      padding: 20px;
-      border-radius: 20px;
-      min-height: 200px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .logout {
-      background: white;
-      color: #0b57d0;
-      border: 2px solid white;
-      padding: 6px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+    /* tiny local overrides so admin dashboard looks neat if styles.css missing */
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(90deg,#1557ff,#2b6cff); color:white; border-radius:0 0 12px 12px; margin-bottom:12px; }
+    .grid{ padding:12px; display:flex; flex-direction:column; gap:12px; max-width:1000px; margin:0 auto;}
+    @media(min-width:880px){ .grid { display:grid; grid-template-columns:280px 1fr; } }
+    .sidebar{ background:#fff; padding:14px; border-radius:12px; box-shadow:0 8px 24px rgba(16,24,40,0.06); }
+    .menu-btn{ display:block; padding:12px; margin-bottom:8px; background:#f4f7ff; border-radius:10px; cursor:pointer; font-weight:700; border:none; width:100%; text-align:left; }
+    #area{ background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 24px rgba(16,24,40,0.06); min-height:320px; }
+    .stat-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .stat{ background:#f7fbff; padding:12px 14px; border-radius:10px; min-width:140px; font-weight:700; }
+    .small{ padding:8px 10px; border-radius:8px; cursor:pointer; }
   </style>
 </head>
-
 <body>
 
-  <!-- TOPBAR -->
+  <!-- protect admin route on load -->
+  <script>
+    (async () => {
+      try {
+        const s = await supabase.auth.getSession();
+        if (!s?.data?.session) { window.location.href = "/index.html"; return; }
+        const email = s.data.session.user.email.toLowerCase();
+        // check teachers table for role = admin
+        const { data } = await supabase.from('teachers').select('role').ilike('email', email).limit(1);
+        const role = (data && data[0] && data[0].role) ? data[0].role : null;
+        if (role !== 'admin') {
+          // not admin -> redirect based on role or to index
+          if (role === 'teacher') window.location.href = "/teacher.html";
+          else window.location.href = "/index.html";
+        }
+      } catch (e) {
+        console.error('admin auth check failed', e);
+        window.location.href = "/index.html";
+      }
+    })();
+  </script>
+
   <div class="topbar">
-    <div style="font-size: 20px">E EduMatrix<br>
-      <span style="font-size: 13px; opacity: .8">Admin Dashboard</span>
+    <div style="font-weight:700">EduMatrix — Admin Dashboard</div>
+    <div style="display:flex; gap:8px; align-items:center">
+      <button class="small" onclick="gotoHome()">Site</button>
+      <button class="small" onclick="logoutUser()">Logout</button>
     </div>
-    <button class="logout" onclick="logoutUser()">Logout</button>
   </div>
 
-  <!-- MOBILE FRIENDLY WRAPPER -->
-  <div class="wrapper">
+  <div class="grid">
 
-    <!-- SIDEBAR (ALWAYS TOP) -->
-    <div class="sidebar">
-      <div style="margin-bottom:8px;font-weight:700">Menu</div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div style="font-weight:800; margin-bottom:8px">Menu</div>
 
-      <div class="menu-btn" onclick="loadAddStudent()">➕ Add Student</div>
-      <div class="menu-btn" onclick="loadAttendance()">📒 Attendance</div>
-      <div class="menu-btn" onclick="loadFees()">💰 Fees</div>
-      <div class="menu-btn" onclick="loadTeacherPanel()">👩‍🏫 Teacher Panel</div>
-      <div class="menu-btn" onclick="loadHomework()">📁 Homework</div>
-      <div class="menu-btn" onclick="loadNotice()">📢 Notice</div>
+      <button class="menu-btn" onclick="show('overview')">📊 Overview</button>
+      <button class="menu-btn" onclick="show('addStudent')">➕ Add Student</button>
+      <button class="menu-btn" onclick="show('attendance')">📒 Attendance</button>
+      <button class="menu-btn" onclick="show('fees')">💰 Fees</button>
+      <button class="menu-btn" onclick="show('homework')">📁 Homework</button>
+      <button class="menu-btn" onclick="show('notices')">📢 Notices</button>
+      <button class="menu-btn" onclick="show('teachers')">👩‍🏫 Teachers</button>
+      <button class="menu-btn" onclick="show('search')">🔍 Student Search</button>
 
-      <hr style="margin:12px 0;opacity:.4">
+      <hr style="margin:10px 0; opacity:.5">
 
-      <div class="menu-btn" onclick="showTeacherManagement()">⚙️ Teacher Management</div>
-    </div>
+      <div style="font-size:13px;color:#6b7280">Quick tools</div>
+      <button class="menu-btn" onclick="exportAllStudentsCSV()">⬇️ Export students CSV</button>
+      <button class="menu-btn" onclick="show('attendanceExport')">📤 Export Attendance</button>
+    </aside>
 
-    <!-- MAIN CONTENT BELOW SIDEBAR -->
-    <div id="area" class="main-content">
-      <b>Welcome – Select an action from the menu above</b><br>
-      <span style="opacity:.6">All changes save to Supabase instantly.</span>
-    </div>
+    <!-- MAIN AREA -->
+    <main id="area">
+      <div class="h6">Loading admin dashboard…</div>
+      <div class="note">If this doesn't change in a second, check console for errors.</div>
+    </main>
 
   </div>
 
