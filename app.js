@@ -1,6 +1,6 @@
 // app.js
 // relies on supabase.js (global supabase)
-console.log("SUPABASE LOADED");
+console.log("APP LOADED");
 async function loginUser(){
   const email = document.getElementById("email").value.trim();
   const pass = document.getElementById("password").value;
