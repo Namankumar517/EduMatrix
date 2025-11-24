@@ -1,25 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Dashboard</title>
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EduMatrix — Admin</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo">
+        <div class="dot">E</div>
+        <div>
+          <div style="font-size:14px;opacity:.9">EduMatrix</div>
+          <div style="font-size:11px;opacity:.8">Admin Dashboard</div>
+        </div>
+      </div>
+      <div style="margin-left:auto" class="row">
+        <button class="small" onclick="location.href='index.html'">Logout</button>
+      </div>
+    </div>
 
-<h2 style="text-align:center; padding-top:15px;">Admin Dashboard</h2>
+    <div class="grid">
+      <aside class="sidebar">
+        <div style="margin-bottom:8px;font-weight:700">Menu</div>
+        <button class="menu-btn" onclick="show('addStudent')">➕ Add Student</button>
+        <button class="menu-btn" onclick="show('attendance')">📝 Attendance</button>
+        <button class="menu-btn" onclick="show('fees')">💳 Fees</button>
+        <button class="menu-btn" onclick="show('teacher')">👩‍🏫 Teacher Panel</button>
+        <button class="menu-btn" onclick="show('homework')">📁 Homework</button>
+        <button class="menu-btn" onclick="show('notice')">📢 Notice</button>
+        <div class="note">Tip: Use the menu to switch panels. All actions save to Supabase.</div>
+      </aside>
 
-<div class="navbar">
-  <button onclick="show('addStudent')">Add Student</button>
-  <button onclick="show('attendance')">Attendance</button>
-  <button onclick="show('fees')">Fees</button>
-  <button onclick="show('homework')">Homework</button>
-  <button onclick="show('notice')">Notice</button>
-</div>
+      <main class="area">
+        <div id="area" class="card">
+          <div class="h6">Welcome — Select an action from the left</div>
+          <div class="note">You can add students, mark attendance, upload homework, and post notices.</div>
+        </div>
 
-<div id="area"></div>
+        <!-- small mobile footer quick actions -->
+        <div class="mobile-footer center">
+          <button class="primary small" onclick="show('addStudent')">Add Student</button>
+          <button class="primary small" onclick="show('attendance')">Attendance</button>
+        </div>
+      </main>
+    </div>
+  </div>
 
-<script src="admin.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
