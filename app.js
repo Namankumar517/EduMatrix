@@ -1,27 +1,34 @@
-// Supabase Connection
-const supabaseClient = supabase.createClient(
-  "https://gqkklssatkwpgqhgqymz.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxa2tsc3NhdGt3cGdxaGdxeW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MTMwMDcsImV4cCI6MjA3OTQ4OTAwN30.M0BnJSwNDAU90wIqSxi_gBU0tyutvLNxBTHkM-YyVpc"
-);
-
-// Login Function
-window.loginUser = async function() {
-  const email = document.getElementById("email").value;
+// app.js
+// relies on supabase.js (global supabase)
+async function loginUser(){
+  const email = document.getElementById("email").value.trim();
   const pass = document.getElementById("password").value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: pass
-  });
+  if(!email || !pass){
+    document.getElementById("msg").innerText = "Enter email and password";
+    return;
+  }
 
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if(error){
     document.getElementById("msg").innerText = error.message;
     return;
   }
 
-  if(email.includes("admin")) {
-    window.location.href = "admin.html";
-  } else {
-    window.location.href = "student.html";
+  // determine role: teacher/admin/student via simple lookup tables
+  const userEmail = email.toLowerCase();
+  // check teachers table first
+  const { data: tdata } = await supabase.from('teachers').select('id').eq('email', userEmail).limit(1);
+  if(tdata && tdata.length) {
+    window.location.href = "teacher.html";
+    return;
   }
-};
+  // check admin by convention: email containing 'admin' OR created in a simple admins table
+  if(userEmail.includes('admin')) {
+    window.location.href = "admin.html";
+    return;
+  }
+
+  // default student
+  window.location.href = "student.html";
+}
