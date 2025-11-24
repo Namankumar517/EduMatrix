@@ -3,9 +3,12 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EduMatrix – Admin Dashboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Absolute paths (IMPORTANT FOR VERCEL) -->
   <script src="/supabase.js"></script>
   <script src="/admin.js" defer></script>
 
@@ -98,7 +101,7 @@
     </aside>
 
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT (Correct ID!) -->
     <div id="area" class="main-content">
       <b>Welcome – Select an action from the left</b><br>
       <span style="opacity:.6">All changes save to Supabase instantly.</span>
@@ -107,27 +110,26 @@
   </div>
 
 
-  <!-- TEACHER MANAGEMENT UI (Loaded on click) -->
+  <!-- TEACHER MANAGEMENT UI -->
   <script>
     function showTeacherManagement() {
       document.getElementById("area").innerHTML = `
         <h3>Teacher Management</h3>
 
-        <input id="prom_email" placeholder="Teacher email" class="input"><br><br>
-        <input id="prom_name" placeholder="Teacher name" class="input"><br><br>
+        <input id="prom_email" placeholder="Teacher email"><br><br>
+        <input id="prom_name" placeholder="Teacher name"><br><br>
 
-        <button class="primary"
-          onclick="promoteToTeacher(
-            document.getElementById('prom_email').value,
-            document.getElementById('prom_name').value
-          )">Promote</button>
+        <button onclick="promoteToTeacher(
+          document.getElementById('prom_email').value,
+          document.getElementById('prom_name').value
+        )">Promote</button>
 
-        <button class="small" style="background:#ffcece;color:#900;margin-left:8px"
+        <button style="background:#ffcece;color:#900;margin-left:8px"
           onclick="demoteTeacher(
             document.getElementById('prom_email').value
           )">Demote</button>
 
-        <div class="note" style="margin-top:12px">
+        <div style="margin-top:12px;opacity:.7">
           Promote = Teacher Panel access<br>
           Demote = Remove teacher access
         </div>
