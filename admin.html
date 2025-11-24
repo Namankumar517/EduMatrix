@@ -1,69 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>EduMatrix — Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EduMatrix – Admin Dashboard</title>
   <link rel="stylesheet" href="styles.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Your Supabase config -->
+  <script src="supabase.js"></script>
+
+  <!-- Your App Logic -->
+  <script src="app.js" defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #eef3ff;
+    }
+    .topbar {
+      background: #0b57d0;
+      padding: 16px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      border-radius: 0 0 20px 20px;
+    }
+    .menu {
+      background: white;
+      padding: 15px;
+      margin: 15px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #f8f9ff;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 16px;
+    }
+    .menu-btn:hover {
+      background: #e6ecff;
+      transform: scale(1.02);
+    }
+    .main-content {
+      background: white;
+      margin: 15px;
+      padding: 20px;
+      border-radius: 20px;
+      min-height: 200px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 16px;
+    }
+    button.logout {
+      background: white;
+      color: #0b57d0;
+      border: 2px solid white;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Session check (runs immediately after supabase client loaded) -->
-<script>
-(async () => {
-  // ensure supabase is ready
-  const { data } = await supabase.auth.getSession();
-  if (!data?.session) {
-    window.location.href = "index.html";
-  } else {
-    // you can check role/email here if needed
-    console.log("Admin signed in:", data.session.user?.email);
-  }
-})();
-</script>
-
-<div class="container">
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="logo">
-      <div class="dot">E</div>
-      <div><div style="font-size:14px;opacity:.9">EduMatrix</div><div style="font-size:11px;opacity:.8">Admin Dashboard</div></div>
+    <div style="font-size: 20px">E&nbsp;&nbsp; EduMatrix<br>
+      <span style="font-size: 13px; opacity: .8">Admin Dashboard</span>
     </div>
-    <div style="margin-left:auto" class="row">
-      <button class="small" onclick="logoutUser()">Logout</button>
-    </div>
+    <button class="logout" onclick="logoutUser()">Logout</button>
   </div>
 
-  <div class="grid">
-    <aside class="sidebar">
-      <div style="margin-bottom:8px;font-weight:700">Menu</div>
-      <button class="menu-btn" onclick="show('addStudent')">➕ Add Student</button>
-      <button class="menu-btn" onclick="show('attendance')">📝 Attendance</button>
-      <button class="menu-btn" onclick="show('fees')">💳 Fees</button>
-      <button class="menu-btn" onclick="show('teacher')">👩‍🏫 Teacher Panel</button>
-      <button class="menu-btn" onclick="show('homework')">📁 Homework</button>
-      <button class="menu-btn" onclick="show('notice')">📢 Notice</button>
-      <div class="note" style="margin-top:10px">Pro tip: use Teacher Panel to mark multiple students quickly.</div>
-    </aside>
+  <!-- SIDEBAR MENU -->
+  <div class="menu">
 
-    <main class="area">
-      <div id="area" class="card">
-        <div class="h6">Welcome — Select an action from the left</div>
-        <div class="note">All changes are saved to Supabase instantly.</div>
-      </div>
-    </main>
+    <div class="menu-btn" onclick="loadAddStudent()">
+      ➕ Add Student
+    </div>
+
+    <div class="menu-btn" onclick="loadAttendance()">
+      📒 Attendance
+    </div>
+
+    <div class="menu-btn" onclick="loadFees()">
+      💰 Fees
+    </div>
+
+    <div class="menu-btn" onclick="loadTeacherPanel()">
+      👩‍🏫 Teacher Panel
+    </div>
+
+    <div class="menu-btn" onclick="loadHomework()">
+      📁 Homework
+    </div>
+
+    <div class="menu-btn" onclick="loadNotice()">
+      📢 Notice
+    </div>
+
   </div>
-</div>
 
-<script src="/admin.js"></script>
-
-<script>
-async function logoutUser() {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-}
-</script>
+  <!-- MAIN CONTENT -->
+  <div id="main" class="main-content">
+    <b>Welcome – Select an action from the left</b><br>
+    <span style="opacity:.6">All changes save to Supabase instantly.</span>
+  </div>
 
 </body>
 </html>
