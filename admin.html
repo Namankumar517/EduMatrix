@@ -6,6 +6,20 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
+  <script>
+  // ensure supabase is ready (this file must be loaded after supabase.js)
+  (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data?.session) {
+      // not logged in
+      window.location.href = "index.html";
+    } else {
+      // optional: get user email
+      window.currentUser = data.session.user;
+      console.log("Signed in:", data.session.user.email);
+    }
+  })();
+  </script>
 </head>
 <body>
   <div class="container">
