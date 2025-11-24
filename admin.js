@@ -1,40 +1,302 @@
-// admin.js — full admin UI & functions
 console.log("ADMIN JS LOADED");
 
 const area = document.getElementById('area');
 
-function show(type){
-  if(type === 'addStudent') renderAddStudent();
-  else if(type === 'attendance') renderAttendance();
-  else if(type === 'fees') renderFees();
-  else if(type === 'homework') renderHomework();
-  else if(type === 'notice') renderNotice();
-  else if(type === 'teacher') renderTeacherPanel();
+// -----------------------------
+// MENU ROUTER
+// -----------------------------
+function loadAddStudent() { renderAddStudent(); }
+function loadAttendance()  { renderAttendance(); }
+function loadFees()        { renderFees(); }
+function loadHomework()    { renderHomework(); }
+function loadNotice()      { renderNotice(); }
+function loadTeacherPanel(){ renderTeacherPanel(); }
+
+// -----------------------------
+// TEACHER MANAGEMENT (Sidebar Button)
+// -----------------------------
+function showTeacherManagement() {
+  area.innerHTML = `
+    <h3>Teacher Management</h3>
+    <input id="prom_email" placeholder="Teacher email" class="input"><br><br>
+    <input id="prom_name" placeholder="Teacher name" class="input"><br><br>
+
+    <button class="primary"
+      onclick="promoteToTeacher(
+        document.getElementById('prom_email').value,
+        document.getElementById('prom_name').value
+      )">Promote</button>
+
+    <button class="small" style="background:#ffcece;color:#900;margin-left:8px"
+      onclick="demoteTeacher(
+        document.getElementById('prom_email').value
+      )">Demote</button>
+
+    <div style="margin-top:12px;opacity:.7">
+      Promote = Teacher Panel access<br>
+      Demote = Remove teacher access
+    </div>
+  `;
 }
 
-// --- Admin extra utilities ---
+// -----------------------------
+// ADMIN FUNCTIONS: PROMOTE / DEMOTE
+// -----------------------------
+async function promoteToTeacher(email, name="Teacher") {
+  if (!email) return alert("Email required");
 
-// Promote a user to teacher table (create teacher)
-async function promoteToTeacher(email, name = 'Teacher') {
-  if(!email) return alert('Email required');
-  const { error } = await supabase.from('teachers').insert({
+  const { error } = await supabase.from("teachers").insert({
     id: crypto.randomUUID(),
     name,
     email: email.toLowerCase()
   });
-  if(error) return alert('Promote error: ' + error.message);
-  alert('Promoted to teacher');
+
+  if (error) return alert("Error: " + error.message);
+  alert("Promoted to teacher!");
 }
 
-// Demote (remove) teacher by email
 async function demoteTeacher(email) {
-  if(!email) return alert('Email required');
-  const { error } = await supabase.from('teachers').delete().eq('email', email.toLowerCase());
-  if(error) return alert('Demote error: ' + error.message);
-  alert('Teacher removed');
+  if (!email) return alert("Email required");
+
+  const { error } = await supabase.from("teachers")
+    .delete()
+    .eq("email", email.toLowerCase());
+
+  if (error) return alert("Error: " + error.message);
+  alert("Teacher removed");
 }
 
-// Student search (partial)
+// -----------------------------
+// 1) ADD STUDENT
+// -----------------------------
+function renderAddStudent() {
+  area.innerHTML = `
+    <h3>Add Student</h3>
+    <input id="s_name" placeholder="Full Name"><br><br>
+    <input id="s_class" placeholder="Class (eg 10th)"><br><br>
+    <input id="s_roll" placeholder="Roll"><br><br>
+    <input id="s_phone" placeholder="Phone"><br><br>
+    <button class="primary" onclick="addStudent()">Save</button>
+    <div id="s_msg" style="margin-top:10px;color:#555"></div>
+  `;
+}
+
+async function addStudent() {
+  const name = document.getElementById("s_name").value;
+  const cls  = document.getElementById("s_class").value;
+  const roll = document.getElementById("s_roll").value;
+  const phone = document.getElementById("s_phone").value;
+
+  if (!name || !roll) return alert("Name & roll required");
+
+  const { error } = await supabase.from("students").insert({
+    id: crypto.randomUUID(),
+    name,
+    class: cls,
+    roll,
+    phone,
+    feePaid: 0
+  });
+
+  if (error) return alert(error.message);
+  document.getElementById("s_msg").innerText = "Student added!";
+}
+
+// -----------------------------
+// 2) ATTENDANCE
+// -----------------------------
+function renderAttendance() {
+  area.innerHTML = `
+    <h3>Mark Attendance</h3>
+    <input id="att_roll" placeholder="Roll"><br><br>
+    <label><input id="att_present" type="checkbox"> Present</label><br><br>
+    <button class="primary" onclick="markAttendance()">Mark</button>
+
+    <div id="att_msg" style="margin-top:10px"></div>
+    <h4 style="margin-top:20px">Latest Records</h4>
+    <div id="att_list"></div>
+  `;
+
+  loadAttendanceList();
+}
+
+async function markAttendance() {
+  const roll = document.getElementById("att_roll").value;
+  const present = document.getElementById("att_present").checked;
+
+  if (!roll) return alert("Roll required");
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const { error } = await supabase.from("attendance").insert({
+    id: crypto.randomUUID(),
+    roll,
+    date: today,
+    present
+  });
+
+  if (error) return alert(error.message);
+
+  document.getElementById("att_msg").innerText = "Marked";
+  loadAttendanceList();
+}
+
+async function loadAttendanceList() {
+  const { data } = await supabase
+    .from("attendance")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(25);
+
+  let html = "<table class='table'><tr><th>Date</th><th>Roll</th><th>Present</th></tr>";
+
+  data.forEach(r => {
+    html += `<tr><td>${r.date}</td><td>${r.roll}</td><td>${r.present ? "Yes" : "No"}</td></tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("att_list").innerHTML = html;
+}
+
+// -----------------------------
+// 3) FEES
+// -----------------------------
+function renderFees() {
+  area.innerHTML = `
+    <h3>Update Fee</h3>
+    <input id="f_roll" placeholder="Roll"><br><br>
+    <input id="f_amount" placeholder="Amount"><br><br>
+    <button class="primary" onclick="saveFee()">Update</button>
+    <div id="f_msg" style="margin-top:10px"></div>
+
+    <h4 style="margin-top:20px">Latest Fees</h4>
+    <div id="fee_list"></div>
+  `;
+  loadFeesList();
+}
+
+async function saveFee() {
+  const roll = document.getElementById("f_roll").value;
+  const amt  = parseFloat(document.getElementById("f_amount").value);
+
+  if (!roll || isNaN(amt)) return alert("Invalid input");
+
+  const { data } = await supabase.from("students").select("*").eq("roll", roll).limit(1);
+
+  if (!data.length) return alert("Student not found");
+
+  const student = data[0];
+
+  // update total
+  await supabase.from("students").update({
+    feePaid: student.feePaid + amt
+  }).eq("id", student.id);
+
+  // add record
+  await supabase.from("fees").insert({
+    id: crypto.randomUUID(),
+    student_id: student.id,
+    amount: amt,
+    method: "Cash"
+  });
+
+  document.getElementById("f_msg").innerText = "Updated!";
+  loadFeesList();
+}
+
+async function loadFeesList() {
+  const { data } = await supabase.from("fees")
+    .select("*")
+    .order("paid_on", { ascending: false })
+    .limit(25);
+
+  let html = "<table class='table'><tr><th>Amount</th><th>Method</th><th>Date</th></tr>";
+
+  data.forEach(f => {
+    html += `<tr><td>${f.amount}</td><td>${f.method}</td><td>${f.paid_on}</td></tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("fee_list").innerHTML = html;
+}
+
+// -----------------------------
+// 4) HOMEWORK
+// -----------------------------
+function renderHomework() {
+  area.innerHTML = `
+    <h3>Upload Homework</h3>
+    <input id="hw_file" type="file"><br><br>
+    <button class="primary" onclick="uploadHomework()">Upload</button>
+    <div id="hw_msg" style="margin-top:10px"></div>
+  `;
+}
+
+async function uploadHomework() {
+  const file = document.getElementById("hw_file").files[0];
+
+  if (!file) return alert("Choose file");
+
+  const path = "homework/" + crypto.randomUUID() + "_" + file.name;
+
+  const { error } = await supabase.storage.from("homework").upload(path, file);
+
+  if (error) return alert(error.message);
+
+  alert("Uploaded!");
+}
+
+// -----------------------------
+// 5) NOTICE
+// -----------------------------
+function renderNotice() {
+  area.innerHTML = `
+    <h3>Post Notice</h3>
+    <input id="notice_msg" placeholder="Notice"><br><br>
+    <button class="primary" onclick="postNotice()">Post</button>
+  `;
+}
+
+async function postNotice() {
+  const msg = document.getElementById("notice_msg").value;
+  if (!msg) return alert("Message required");
+
+  await supabase.from("notices").insert({
+    id: crypto.randomUUID(),
+    message: msg,
+    date: new Date().toISOString().split("T")[0]
+  });
+
+  alert("Posted!");
+}
+
+// -----------------------------
+// 6) TEACHER PANEL (Simple version)
+// -----------------------------
+function renderTeacherPanel() {
+  area.innerHTML = `
+    <h3>Teacher Panel</h3>
+    <input id="t_class" placeholder="Class (eg 10th)"><br><br>
+    <button class="primary" onclick="loadTeacherStudents()">Load</button>
+    <div id="t_list" style="margin-top:15px"></div>
+  `;
+}
+
+async function loadTeacherStudents() {
+  const cls = document.getElementById("t_class").value;
+
+  const { data } = await supabase.from("students").select("*").eq("class", cls);
+
+  let html = "<table class='table'><tr><th>Roll</th><th>Name</th></tr>";
+
+  data.forEach(s => {
+    html += `<tr><td>${s.roll}</td><td>${s.name}</td></tr>`;
+  });
+
+  html += "</table>";
+
+  document.getElementById("t_list").innerHTML = html;
+}// Student search (partial)
 async function adminSearchStudent(q) {
   if(!q) return alert('Enter search text');
   const { data, error } = await supabase.from('students').select('*')
