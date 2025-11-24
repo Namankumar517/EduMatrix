@@ -9,7 +9,10 @@ async function checkLogin() {
     window.location.href = "index.html";
   }
 }
-checkLogin();
+// Only run login check on admin pages, not login page
+if (!window.location.href.includes("index.html")) {
+  checkLogin();
+}
 
 // ----------------------
 // LOGOUT
