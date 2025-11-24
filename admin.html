@@ -5,15 +5,18 @@
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
-<h2>Admin Dashboard</h2>
+<h2 style="text-align:center; padding-top:15px;">Admin Dashboard</h2>
 
-<button onclick="show('addStudent')">Add Student</button>
-<button onclick="show('attendance')">Attendance</button>
-<button onclick="show('fees')">Fees</button>
-<button onclick="show('homework')">Homework</button>
-<button onclick="show('notice')">Notice</button>
+<div class="navbar">
+  <button onclick="show('addStudent')">Add Student</button>
+  <button onclick="show('attendance')">Attendance</button>
+  <button onclick="show('fees')">Fees</button>
+  <button onclick="show('homework')">Homework</button>
+  <button onclick="show('notice')">Notice</button>
+</div>
 
 <div id="area"></div>
 
