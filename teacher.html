@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EduMatrix — Teacher</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase.js"></script>
+</head>
+<body>
+
+<script>
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  if (!data?.session) window.location.href = "index.html";
+})();
+</script>
+
+<div class="container">
+  <div class="topbar">
+    <div class="logo"><div class="dot">T</div><div><div style="font-size:14px;opacity:.9">EduMatrix</div><div style="font-size:11px;opacity:.8">Teacher Panel</div></div></div>
+    <div style="margin-left:auto" class="row">
+      <button class="small" onclick="logoutUser()">Logout</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <aside class="sidebar">
+      <div style="margin-bottom:8px;font-weight:700">Teacher Menu</div>
+      <button class="menu-btn" onclick="showTeacher('class')">📚 Class Students</button>
+      <button class="menu-btn" onclick="showTeacher('attendance')">📝 Mark Attendance</button>
+      <button class="menu-btn" onclick="showTeacher('homework')">📁 Upload Homework</button>
+      <button class="menu-btn" onclick="showTeacher('notice')">📢 Notices</button>
+      <div class="note" style="margin-top:10px">Tip: use CSV export to share reports.</div>
+    </aside>
+
+    <main class="area">
+      <div id="tarea" class="card">
+        <div class="h6">Welcome — Teacher Panel</div>
+        <div class="note">Choose an action from the left.</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="/teacher.js"></script>
+
+<script>
+async function logoutUser() {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+}
+</script>
+</body>
+</html>
