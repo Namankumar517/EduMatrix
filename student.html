@@ -5,6 +5,7 @@
   <title>EduMatrix — Student</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
 </head>
 <body>
   <div class="container">
@@ -16,7 +17,6 @@
           <div style="font-size:11px;opacity:.8">Student Panel</div>
         </div>
       </div>
-
       <div style="margin-left:auto" class="row">
         <button class="small" onclick="location.href='index.html'">Logout</button>
       </div>
@@ -30,6 +30,11 @@
     <div class="card">
       <div class="h6">Notices</div>
       <div id="notices" class="note">Loading notices...</div>
+    </div>
+
+    <div class="card">
+      <div class="h6">My Attendance</div>
+      <div id="myAttendance" class="note">Loading...</div>
     </div>
   </div>
 
