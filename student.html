@@ -4,64 +4,55 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>EduMatrix — Student</title>
   <link rel="stylesheet" href="styles.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase.js"></script>
-  <script>
-  // ensure supabase is ready (this file must be loaded after supabase.js)
-  (async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data?.session) {
-      // not logged in
-      window.location.href = "index.html";
-    } else {
-      // optional: get user email
-      window.currentUser = data.session.user;
-      console.log("Signed in:", data.session.user.email);
-    }
-  })();
-  </script>
+  <script src="/supabase.js"></script>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <div class="logo">
-        <div class="dot">E</div>
-        <div>
-          <div style="font-size:14px;opacity:.9">EduMatrix</div>
-          <div style="font-size:11px;opacity:.8">Student Panel</div>
-        </div>
-      </div>
-      <div style="margin-left:auto" class="row">
-        <button class="small" onclick="location.href='index.html'">Logout</button>
-      </div>
-    </div>
 
-    <div style="margin-top:14px" class="card">
-      <div class="h6">Homework</div>
-      <div id="hw" class="note">Loading homework...</div>
-    </div>
+<script>
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  if (!data?.session) window.location.href = "index.html";
+})();
+</script>
 
-    <div class="card">
-      <div class="h6">Notices</div>
-      <div id="notices" class="note">Loading notices...</div>
-    </div>
-
-    <div class="card">
-      <div class="h6">My Attendance</div>
-      <div id="myAttendance" class="note">Loading...</div>
+<div class="container">
+  <div class="topbar">
+    <div class="logo"><div class="dot">E</div><div><div style="font-size:14px;opacity:.9">EduMatrix</div><div style="font-size:11px;opacity:.8">Student Panel</div></div></div>
+    <div style="margin-left:auto" class="row">
+      <button class="small" onclick="logoutUser()">Logout</button>
     </div>
   </div>
 
-  <script src="student.js"></script>
-  <script>
-    async function logoutUser() {
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    alert("Logout error: " + error.message);
-    return;
-  }
+  <div class="card">
+    <div class="h6">Homework</div>
+    <div id="hw" class="note">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="h6">Notices</div>
+    <div id="notices" class="note">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="h6">My Attendance</div>
+    <div id="myAttendance" class="note">Click to view</div>
+    <div style="margin-top:8px" class="row">
+      <input id="viewRoll" placeholder="Enter your roll/id" />
+      <button class="primary small" onclick="viewMyAttendance()">View</button>
+    </div>
+  </div>
+</div>
+
+<script src="/student.js"></script>
+
+<script>
+async function logoutUser() {
+  await supabase.auth.signOut();
   window.location.href = "index.html";
-    }
-  </script>
+}
+</script>
+
 </body>
 </html>
