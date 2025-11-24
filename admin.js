@@ -1,93 +1,50 @@
 console.log("ADMIN JS LOADED");
 
-const area = document.getElementById('area');
+const area = document.getElementById("area");
 
-// -----------------------------
-// MENU ROUTER
-// -----------------------------
-function loadAddStudent() { renderAddStudent(); }
-function loadAttendance()  { renderAttendance(); }
-function loadFees()        { renderFees(); }
-function loadHomework()    { renderHomework(); }
-function loadNotice()      { renderNotice(); }
-function loadTeacherPanel(){ renderTeacherPanel(); }
+// ----------------------------------------------------
+// MAKE ALL FUNCTIONS GLOBAL (IMPORTANT)
+// ----------------------------------------------------
+window.loadAddStudent = loadAddStudent;
+window.loadAttendance = loadAttendance;
+window.loadFees = loadFees;
+window.loadHomework = loadHomework;
+window.loadNotice = loadNotice;
+window.loadTeacherPanel = loadTeacherPanel;
+window.showTeacherManagement = showTeacherManagement;
 
-// -----------------------------
-// TEACHER MANAGEMENT (Sidebar Button)
-// -----------------------------
-function showTeacherManagement() {
-  area.innerHTML = `
-    <h3>Teacher Management</h3>
-    <input id="prom_email" placeholder="Teacher email" class="input"><br><br>
-    <input id="prom_name" placeholder="Teacher name" class="input"><br><br>
+window.addStudent = addStudent;
+window.markAttendance = markAttendance;
+window.saveFee = saveFee;
+window.uploadHomework = uploadHomework;
+window.postNotice = postNotice;
+window.loadClassStudents = loadClassStudents;
+window.promoteToTeacher = promoteToTeacher;
+window.demoteTeacher = demoteTeacher;
 
-    <button class="primary"
-      onclick="promoteToTeacher(
-        document.getElementById('prom_email').value,
-        document.getElementById('prom_name').value
-      )">Promote</button>
 
-    <button class="small" style="background:#ffcece;color:#900;margin-left:8px"
-      onclick="demoteTeacher(
-        document.getElementById('prom_email').value
-      )">Demote</button>
-
-    <div style="margin-top:12px;opacity:.7">
-      Promote = Teacher Panel access<br>
-      Demote = Remove teacher access
-    </div>
-  `;
-}
-
-// -----------------------------
-// ADMIN FUNCTIONS: PROMOTE / DEMOTE
-// -----------------------------
-async function promoteToTeacher(email, name="Teacher") {
-  if (!email) return alert("Email required");
-
-  const { error } = await supabase.from("teachers").insert({
-    id: crypto.randomUUID(),
-    name,
-    email: email.toLowerCase()
-  });
-
-  if (error) return alert("Error: " + error.message);
-  alert("Promoted to teacher!");
-}
-
-async function demoteTeacher(email) {
-  if (!email) return alert("Email required");
-
-  const { error } = await supabase.from("teachers")
-    .delete()
-    .eq("email", email.toLowerCase());
-
-  if (error) return alert("Error: " + error.message);
-  alert("Teacher removed");
-}
-
-// -----------------------------
+// ====================================================
 // 1) ADD STUDENT
-// -----------------------------
-function renderAddStudent() {
+// ====================================================
+function loadAddStudent() {
   area.innerHTML = `
     <h3>Add Student</h3>
     <input id="s_name" placeholder="Full Name"><br><br>
-    <input id="s_class" placeholder="Class (eg 10th)"><br><br>
+    <input id="s_class" placeholder="Class eg 10th"><br><br>
     <input id="s_roll" placeholder="Roll"><br><br>
     <input id="s_phone" placeholder="Phone"><br><br>
-    <button class="primary" onclick="addStudent()">Save</button>
-    <div id="s_msg" style="margin-top:10px;color:#555"></div>
+    <button onclick="addStudent()">Add</button>
+    <div id="s_msg" style="margin-top:10px"></div>
   `;
 }
 
 async function addStudent() {
-  const name = document.getElementById("s_name").value;
-  const cls  = document.getElementById("s_class").value;
-  const roll = document.getElementById("s_roll").value;
-  const phone = document.getElementById("s_phone").value;
+  const name = s_name.value.trim();
+  const cls  = s_class.value.trim();
+  const roll = s_roll.value.trim();
+  const phone = s_phone.value.trim();
 
-  if (!name || !roll) return alert("Name & roll required");
+  if (!name || !roll) return alert("Name & Roll required");
 
   const { error } = await supabase.from("students").insert({
     id: crypto.randomUUID(),
@@ -99,45 +56,43 @@ async function addStudent() {
   });
 
   if (error) return alert(error.message);
-  document.getElementById("s_msg").innerText = "Student added!";
+  s_msg.innerHTML = "Student Added ✔";
 }
 
-// -----------------------------
+
+
+// ====================================================
 // 2) ATTENDANCE
-// -----------------------------
-function renderAttendance() {
+// ====================================================
+function loadAttendance() {
   area.innerHTML = `
-    <h3>Mark Attendance</h3>
+    <h3>Attendance</h3>
     <input id="att_roll" placeholder="Roll"><br><br>
     <label><input id="att_present" type="checkbox"> Present</label><br><br>
-    <button class="primary" onclick="markAttendance()">Mark</button>
-
+    <button onclick="markAttendance()">Mark</button>
     <div id="att_msg" style="margin-top:10px"></div>
-    <h4 style="margin-top:20px">Latest Records</h4>
-    <div id="att_list"></div>
+    <div id="att_list" style="margin-top:20px"></div>
   `;
-
   loadAttendanceList();
 }
 
 async function markAttendance() {
-  const roll = document.getElementById("att_roll").value;
-  const present = document.getElementById("att_present").checked;
+  const roll = att_roll.value.trim();
+  const present = att_present.checked;
+  const date = new Date().toISOString().slice(0, 10);
 
   if (!roll) return alert("Roll required");
-
-  const today = new Date().toISOString().split("T")[0];
 
   const { error } = await supabase.from("attendance").insert({
     id: crypto.randomUUID(),
     roll,
-    date: today,
-    present
+    present,
+    date
   });
 
   if (error) return alert(error.message);
+  att_msg.innerHTML = "Marked ✔";
 
-  document.getElementById("att_msg").innerText = "Marked";
   loadAttendanceList();
 }
 
@@ -146,742 +101,202 @@ async function loadAttendanceList() {
     .from("attendance")
     .select("*")
     .order("date", { ascending: false })
-    .limit(25);
+    .limit(30);
 
-  let html = "<table class='table'><tr><th>Date</th><th>Roll</th><th>Present</th></tr>";
+  let html = "<table><tr><th>Date</th><th>Roll</th><th>P</th></tr>";
 
-  data.forEach(r => {
-    html += `<tr><td>${r.date}</td><td>${r.roll}</td><td>${r.present ? "Yes" : "No"}</td></tr>`;
+  (data || []).forEach(r => {
+    html += `<tr><td>${r.date}</td><td>${r.roll}</td><td>${r.present ? '✔' : '✘'}</td></tr>`;
   });
 
   html += "</table>";
-  document.getElementById("att_list").innerHTML = html;
+  att_list.innerHTML = html;
 }
 
-// -----------------------------
+
+
+// ====================================================
 // 3) FEES
-// -----------------------------
-function renderFees() {
+// ====================================================
+function loadFees() {
   area.innerHTML = `
-    <h3>Update Fee</h3>
+    <h3>Fees</h3>
     <input id="f_roll" placeholder="Roll"><br><br>
     <input id="f_amount" placeholder="Amount"><br><br>
-    <button class="primary" onclick="saveFee()">Update</button>
+    <button onclick="saveFee()">Save Fee</button>
     <div id="f_msg" style="margin-top:10px"></div>
-
-    <h4 style="margin-top:20px">Latest Fees</h4>
-    <div id="fee_list"></div>
+    <div id="fee_list" style="margin-top:20px"></div>
   `;
   loadFeesList();
 }
 
 async function saveFee() {
-  const roll = document.getElementById("f_roll").value;
-  const amt  = parseFloat(document.getElementById("f_amount").value);
+  const roll = f_roll.value.trim();
+  const amount = parseFloat(f_amount.value);
 
-  if (!roll || isNaN(amt)) return alert("Invalid input");
+  if (!roll || isNaN(amount)) return alert("Invalid input");
 
+  // find student
   const { data } = await supabase.from("students").select("*").eq("roll", roll).limit(1);
-
   if (!data.length) return alert("Student not found");
 
-  const student = data[0];
+  const stud = data[0];
 
-  // update total
+  // update total feePaid
   await supabase.from("students").update({
-    feePaid: student.feePaid + amt
-  }).eq("id", student.id);
+    feePaid: (stud.feePaid || 0) + amount
+  }).eq("id", stud.id);
 
-  // add record
+  // add entry
   await supabase.from("fees").insert({
     id: crypto.randomUUID(),
-    student_id: student.id,
-    amount: amt,
+    student_id: stud.id,
+    amount,
     method: "Cash"
   });
 
-  document.getElementById("f_msg").innerText = "Updated!";
+  f_msg.innerHTML = "Fee Saved ✔";
   loadFeesList();
 }
 
 async function loadFeesList() {
-  const { data } = await supabase.from("fees")
+  const { data } = await supabase
+    .from("fees")
     .select("*")
     .order("paid_on", { ascending: false })
-    .limit(25);
+    .limit(20);
 
-  let html = "<table class='table'><tr><th>Amount</th><th>Method</th><th>Date</th></tr>";
+  let html = "<table><tr><th>Amount</th><th>Method</th><th>Date</th></tr>";
 
-  data.forEach(f => {
+  (data || []).forEach(f => {
     html += `<tr><td>${f.amount}</td><td>${f.method}</td><td>${f.paid_on}</td></tr>`;
   });
 
   html += "</table>";
-  document.getElementById("fee_list").innerHTML = html;
+  fee_list.innerHTML = html;
 }
 
-// -----------------------------
+
+
+// ====================================================
 // 4) HOMEWORK
-// -----------------------------
-function renderHomework() {
+// ====================================================
+function loadHomework() {
   area.innerHTML = `
     <h3>Upload Homework</h3>
     <input id="hw_file" type="file"><br><br>
-    <button class="primary" onclick="uploadHomework()">Upload</button>
+    <button onclick="uploadHomework()">Upload</button>
     <div id="hw_msg" style="margin-top:10px"></div>
   `;
 }
 
 async function uploadHomework() {
-  const file = document.getElementById("hw_file").files[0];
-
-  if (!file) return alert("Choose file");
+  const file = hw_file.files[0];
+  if (!file) return alert("Choose a file");
 
   const path = "homework/" + crypto.randomUUID() + "_" + file.name;
 
   const { error } = await supabase.storage.from("homework").upload(path, file);
-
   if (error) return alert(error.message);
 
-  alert("Uploaded!");
+  hw_msg.innerHTML = "Uploaded ✔";
 }
 
-// -----------------------------
+
+
+// ====================================================
 // 5) NOTICE
-// -----------------------------
-function renderNotice() {
+// ====================================================
+function loadNotice() {
   area.innerHTML = `
     <h3>Post Notice</h3>
-    <input id="notice_msg" placeholder="Notice"><br><br>
-    <button class="primary" onclick="postNotice()">Post</button>
+    <input id="notice_msg" placeholder="Notice text"><br><br>
+    <button onclick="postNotice()">Post</button>
   `;
 }
 
 async function postNotice() {
-  const msg = document.getElementById("notice_msg").value;
-  if (!msg) return alert("Message required");
+  const msg = notice_msg.value.trim();
+  if (!msg) return alert("Write something");
 
   await supabase.from("notices").insert({
     id: crypto.randomUUID(),
     message: msg,
-    date: new Date().toISOString().split("T")[0]
+    date: new Date().toISOString().slice(0, 10)
   });
 
-  alert("Posted!");
+  alert("Posted ✔");
 }
 
-// -----------------------------
-// 6) TEACHER PANEL (Simple version)
-// -----------------------------
-function renderTeacherPanel() {
+
+
+// ====================================================
+// 6) TEACHER PANEL
+// ====================================================
+function loadTeacherPanel() {
   area.innerHTML = `
     <h3>Teacher Panel</h3>
-    <input id="t_class" placeholder="Class (eg 10th)"><br><br>
-    <button class="primary" onclick="loadTeacherStudents()">Load</button>
-    <div id="t_list" style="margin-top:15px"></div>
+    <input id="t_class" placeholder="Class eg 10th"><br><br>
+    <button onclick="loadClassStudents()">Load</button>
+    <div id="t_list" style="margin-top:20px"></div>
   `;
 }
 
-async function loadTeacherStudents() {
-  const cls = document.getElementById("t_class").value;
+async function loadClassStudents() {
+  const cls = t_class.value.trim();
+  if (!cls) return alert("Class required");
 
   const { data } = await supabase.from("students").select("*").eq("class", cls);
 
-  let html = "<table class='table'><tr><th>Roll</th><th>Name</th></tr>";
+  let html = "<table><tr><th>Roll</th><th>Name</th></tr>";
 
-  data.forEach(s => {
+  (data || []).forEach(s => {
     html += `<tr><td>${s.roll}</td><td>${s.name}</td></tr>`;
   });
 
   html += "</table>";
 
-  document.getElementById("t_list").innerHTML = html;
-}// Student search (partial)
-async function adminSearchStudent(q) {
-  if(!q) return alert('Enter search text');
-  const { data, error } = await supabase.from('students').select('*')
-    .or(`name.ilike.%${q}%,roll.ilike.%${q}%`).limit(50);
-  if(error) return alert(error.message);
-  // simple display
-  let html = '<table class="table"><tr><th>Roll</th><th>Name</th><th>Class</th></tr>';
-  data.forEach(s => html += `<tr><td>${s.roll}</td><td>${s.name}</td><td>${s.class}</td></tr>`);
-  html += '</table>';
-  document.getElementById('area').innerHTML = html;
+  t_list.innerHTML = html;
 }
 
-// Export attendance (admin)
-async function adminExportAttendance(cls, fromDate, toDate) {
-  const { data, error } = await supabase.from('attendance').select('*')
-    .gte('date', fromDate).lte('date', toDate).order('date', { ascending: true });
-  if(error) return alert(error.message);
-  // map names
-  const rolls = [...new Set(data.map(r => r.roll))];
-  const { data: studs } = await supabase.from('students').select('roll,name').in('roll', rolls);
-  const nameMap = {}; (studs||[]).forEach(s => nameMap[s.roll]=s.name);
-  let csv = 'roll,name,date,present\n';
-  data.forEach(r => csv += `${r.roll},"${(nameMap[r.roll]||'')}",${r.date},${r.present}\n`);
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `attendance_${fromDate}_${toDate}.csv`; a.click();
-  URL.revokeObjectURL(url);
-}
 
-function renderAddStudent(){
+
+// ====================================================
+// 7) TEACHER MANAGEMENT PANEL
+// ====================================================
+function showTeacherManagement() {
   area.innerHTML = `
-    <div class="h6">Add Student</div>
-    <div class="form-row">
-      <input id="s_name" placeholder="Full name" type="text">
-      <div class="row inline">
-        <input id="s_class" placeholder="Class (eg 10th)" type="text">
-        <input id="s_roll" placeholder="Roll / ID" type="text">
-      </div>
-      <input id="s_phone" placeholder="Phone" type="text">
-      <input id="s_fee" placeholder="Fee paid (optional)" type="text">
-      <button class="primary" onclick="addStudent()">Add</button>
-      <div id="s_msg" class="note"></div>
-    </div>
+    <h3>Teacher Management</h3>
+    <input id="prom_email" placeholder="Teacher Email"><br><br>
+    <input id="prom_name" placeholder="Teacher Name"><br><br>
+    <button onclick="promoteToTeacher(prom_email.value, prom_name.value)">Promote</button>
+    <button onclick="demoteTeacher(prom_email.value)" style="margin-left:10px;background:#ffdddd;">Demote</button>
   `;
 }
 
-async function addStudent(){
-  const name = document.getElementById('s_name').value.trim();
-  const cls = document.getElementById('s_class').value.trim();
-  const roll = document.getElementById('s_roll').value.trim();
-  const phone = document.getElementById('s_phone').value.trim();
-  const fee = document.getElementById('s_fee').value || 0;
+async function promoteToTeacher(email, name) {
+  if (!email) return alert("Email required");
 
-  if(!name || !roll){ document.getElementById('s_msg').innerText='Name & roll required'; return; }
-
-  const id = genId();
-  const { error } = await supabase.from('students').insert({ id, name, class: cls, roll, phone, feePaid: fee });
-  if(error){ document.getElementById('s_msg').innerText = error.message; return; }
-  document.getElementById('s_msg').innerText = 'Student added';
-  // clear
-  document.getElementById('s_name').value='';
-  document.getElementById('s_class').value='';
-  document.getElementById('s_roll').value='';
-  document.getElementById('s_phone').value='';
-  document.getElementById('s_fee').value='';
-}
-
-function renderAttendance(){
-  area.innerHTML = `
-    <div class="h6">Mark Attendance</div>
-    <div class="form-row">
-      <input id="att_date" type="date" value="${new Date().toISOString().slice(0,10)}">
-      <input id="att_roll" placeholder="Roll / Student ID">
-      <div class="row"><label><input id="att_present" type="checkbox"> Present</label></div>
-      <button class="primary" onclick="markAttendance()">Mark</button>
-      <div id="att_msg" class="note"></div>
-      <div id="att_list" class="note"></div>
-    </div>
-  `;
-  loadAttendanceList();
-}
-
-async function markAttendance(){
-  const date = document.getElementById('att_date').value;
-  const roll = document.getElementById('att_roll').value.trim();
-  const present = document.getElementById('att_present').checked;
-
-  if(!date || !roll){ document.getElementById('att_msg').innerText='Date & roll required'; return; }
-  const { error } = await supabase.from('attendance').insert({ id: genId(), date, roll, present });
-  if(error){ document.getElementById('att_msg').innerText = error.message; return; }
-  document.getElementById('att_msg').innerText = 'Marked';
-  document.getElementById('att_roll').value='';
-  loadAttendanceList();
-}
-
-async function loadAttendanceList(){
-  const { data, error } = await supabase.from('attendance').select('*').order('created_at', { ascending:false }).limit(50);
-  if(error){ document.getElementById('att_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('att_list').innerText = 'No records yet'; return; }
-  let html = '<table class="table"><tr><th>Date</th><th>Roll</th><th>Present</th></tr>';
-  data.forEach(r => html += `<tr><td>${r.date}</td><td>${r.roll}</td><td>${r.present ? 'Yes':'No'}</td></tr>`);
-  html += '</table>';
-  document.getElementById('att_list').innerHTML = html;
-}
-
-function renderFees(){
-  area.innerHTML = `
-    <div class="h6">Update Fee</div>
-    <div class="form-row">
-      <input id="f_roll" placeholder="Student Roll / ID">
-      <input id="f_amount" placeholder="Amount">
-      <select id="f_method"><option>Cash</option><option>UPI</option><option>Card</option></select>
-      <button class="primary" onclick="saveFee()">Save Fee</button>
-      <div id="f_msg" class="note"></div>
-      <div id="fee_list" class="note"></div>
-    </div>
-  `;
-  loadFeesList();
-}
-
-async function saveFee(){
-  const roll = document.getElementById('f_roll').value.trim();
-  const amount = parseFloat(document.getElementById('f_amount').value);
-  const method = document.getElementById('f_method').value;
-
-  if(!roll || isNaN(amount)){ document.getElementById('f_msg').innerText='Roll & numeric amount required'; return; }
-  const { data: student } = await supabase.from('students').select('id,feePaid').eq('roll', roll).limit(1);
-  if(!student || !student.length){ document.getElementById('f_msg').innerText='Student not found'; return; }
-  const sid = student[0].id;
-  const cur = parseFloat(student[0].feePaid || 0);
-  const newAmt = cur + amount;
-
-  const { error } = await supabase.from('students').update({ feePaid: newAmt }).eq('id', sid);
-  if(error){ document.getElementById('f_msg').innerText = error.message; return; }
-
-  await supabase.from('fees').insert({ id: genId(), student_id: sid, amount, method });
-  document.getElementById('f_msg').innerText = 'Fee recorded';
-  loadFeesList();
-}
-
-async function loadFeesList(){
-  const { data, error } = await supabase.from('fees').select('*').order('paid_on', { ascending:false }).limit(50);
-  if(error){ document.getElementById('fee_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('fee_list').innerText = 'No fees yet'; return; }
-  let html = '<table class="table"><tr><th>Student</th><th>Amount</th><th>Method</th><th>Date</th></tr>';
-  for(const f of data){
-    let name = f.student_id;
-    try{
-      const res = await supabase.from('students').select('name').eq('id', f.student_id).limit(1);
-      if(res.data && res.data.length) name = res.data[0].name;
-    }catch(e){}
-    html += `<tr><td>${name}</td><td>${f.amount}</td><td>${f.method}</td><td>${new Date(f.paid_on).toLocaleString()}</td></tr>`;
-  }
-  html += '</table>';
-  document.getElementById('fee_list').innerHTML = html;
-}
-
-function renderHomework(){
-  area.innerHTML = `
-    <div class="h6">Upload Homework</div>
-    <div class="form-row">
-      <input id="hw_title" placeholder="Title (optional)">
-      <input id="hw_file" type="file">
-      <button class="primary" onclick="uploadHomework()">Upload</button>
-      <div id="hw_msg" class="note"></div>
-      <div id="hw_list" class="note"></div>
-    </div>
-  `;
-  loadHomeworkList();
-}
-
-async function uploadHomework(){
-  const fileInput = document.getElementById('hw_file');
-  const title = document.getElementById('hw_title').value || '';
-  if(!fileInput.files.length){ document.getElementById('hw_msg').innerText='Choose file'; return; }
-  const file = fileInput.files[0];
-  const path = `homework/${genId()}_${file.name}`;
-  const { error } = await supabase.storage.from('homework').upload(path, file, { upsert: true });
-  if(error){ document.getElementById('hw_msg').innerText = error.message; return; }
-
-  const { data: urlData } = supabase.storage.from('homework').getPublicUrl(path);
-  const publicUrl = urlData ? urlData.publicUrl : null;
-
-  await supabase.from('homework').insert({ id: genId(), title, file_url: publicUrl, date: new Date().toISOString().slice(0,10) });
-  document.getElementById('hw_msg').innerText = 'Uploaded';
-  fileInput.value = '';
-  loadHomeworkList();
-}
-
-async function loadHomeworkList(){
-  const { data, error } = await supabase.from('homework').select('*').order('date', { ascending:false }).limit(50);
-  if(error){ document.getElementById('hw_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('hw_list').innerText = 'No homework'; return; }
-  let html = '<ul>';
-  data.forEach(h => {
-    html += `<li>${h.title || 'File'} — <a href="${h.file_url}" target="_blank">Open</a> <span class="kv">(${h.date})</span></li>`;
-  });
-  html += '</ul>';
-  document.getElementById('hw_list').innerHTML = html;
-}
-
-function renderNotice(){
-  area.innerHTML = `
-    <div class="h6">Post Notice</div>
-    <div class="form-row">
-      <input id="notice_msg" placeholder="Notice text">
-      <button class="primary" onclick="postNotice()">Post</button>
-      <div id="notice_info" class="note"></div>
-      <div id="notice_list" class="note"></div>
-    </div>
-  `;
-  loadNotices();
-}
-
-async function postNotice(){
-  const msg = document.getElementById('notice_msg').value.trim();
-  if(!msg){ document.getElementById('notice_info').innerText = 'Enter notice'; return; }
-  const { error } = await supabase.from('notices').insert({ id: genId(), message: msg, date: new Date().toISOString().slice(0,10) });
-  if(error){ document.getElementById('notice_info').innerText = error.message; return; }
-  document.getElementById('notice_info').innerText = 'Posted';
-  document.getElementById('notice_msg').value='';
-  loadNotices();
-}
-
-async function loadNotices(){
-  const { data, error } = await supabase.from('notices').select('*').order('date', { ascending:false }).limit(50);
-  if(error){ document.getElementById('notice_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('notice_list').innerText = 'No notices'; return; }
-  let html = '<ul>';
-  data.forEach(n => html += `<li>${n.message} <span class="kv">(${n.date})</span></li>`);
-  html += '</ul>';
-  document.getElementById('notice_list').innerHTML = html;
-}
-
-function renderTeacherPanel(){
-  area.innerHTML = `
-    <div class="h6">Teacher Panel</div>
-    <div class="form-row">
-      <input id="t_class" placeholder="Enter class (eg 10th)">
-      <button class="primary" onclick="loadClassStudents()">Load Students</button>
-      <div id="teacher_list" class="note"></div>
-    </div>
-  `;
-}
-
-async function loadClassStudents(){
-  const cls = document.getElementById('t_class').value.trim();
-  if(!cls){ document.getElementById('teacher_list').innerText='Enter class'; return; }
-  const { data, error } = await supabase.from('students').select('*').eq('class', cls).order('name');
-  if(error){ document.getElementById('teacher_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('teacher_list').innerText='No students'; return; }
-  let html = '<table class="table"><tr><th>Roll</th><th>Name</th><th>Present</th></tr>';
-  data.forEach(s => {
-    html += `<tr><td>${s.roll}</td><td>${s.name}</td><td><button onclick="markAttendanceFor('${s.roll}', true)" class="small">P</button> <button onclick="markAttendanceFor('${s.roll}', false)" class="small">A</button></td></tr>`;
-  });
-  html += '</table>';
-  document.getElementById('teacher_list').innerHTML = html;
-}
-
-async function markAttendanceFor(roll, present){
-  const { error } = await supabase.from('attendance').insert({ id: genId(), date: new Date().toISOString().slice(0,10), roll, present });
-  if(error) alert(error.message);
-  else alert('Marked');
-}  const fee = document.getElementById('s_fee').value || 0;
-
-  if(!name || !roll){
-    document.getElementById('s_msg').innerText = 'Name and roll required';
-    return;
-  }
-
-  const id = genId();
-  const { error } = await supabase.from('students').insert({
-    id, name, class: cls, phone, roll, feePaid: fee
-  });
-  if(error){
-    document.getElementById('s_msg').innerText = error.message;
-    return;
-  }
-  document.getElementById('s_msg').innerText = 'Student added';
-  // clear
-  document.getElementById('s_name').value='';
-  document.getElementById('s_class').value='';
-  document.getElementById('s_roll').value='';
-  document.getElementById('s_phone').value='';
-  document.getElementById('s_fee').value='';
-}
-
-// --- Attendance ---
-function renderAttendance(){
-  area.innerHTML = `
-    <div class="h6">Mark Attendance</div>
-    <div class="form-row">
-      <input id="att_date" type="date" value="${new Date().toISOString().slice(0,10)}">
-      <input id="att_roll" placeholder="Roll / Student ID">
-      <div class="row">
-        <label><input id="att_present" type="checkbox"> Present</label>
-      </div>
-      <button class="primary" onclick="markAttendance()">Mark</button>
-      <div id="att_msg" class="note"></div>
-      <div id="att_list" class="note"></div>
-    </div>
-  `;
-  loadAttendanceList();
-}
-
-async function markAttendance(){
-  const date = document.getElementById('att_date').value;
-  const roll = document.getElementById('att_roll').value.trim();
-  const present = document.getElementById('att_present').checked;
-
-  if(!date || !roll){
-    document.getElementById('att_msg').innerText = 'Date and roll required';
-    return;
-  }
-
-  const { error } = await supabase.from('attendance').insert({
-    id: genId(), date, roll, present
-  });
-  if(error){
-    document.getElementById('att_msg').innerText = error.message;
-    return;
-  }
-  document.getElementById('att_msg').innerText = 'Marked';
-  document.getElementById('att_roll').value='';
-  loadAttendanceList();
-}
-
-async function loadAttendanceList(){
-  const { data, error } = await supabase.from('attendance').select('*').order('paid_on', { ascending: false }).limit(50);
-  if(error){ document.getElementById('att_list').innerText = error.message; return; }
-  if(!data || !data.length) { document.getElementById('att_list').innerText = 'No records yet'; return; }
-  let html = '<table class="table"><tr><th>Date</th><th>Roll</th><th>Present</th></tr>';
-  data.forEach(r => {
-    html += `<tr><td>${r.date}</td><td>${r.roll}</td><td>${r.present ? 'Yes':'No'}</td></tr>`;
-  });
-  html += '</table>';
-  document.getElementById('att_list').innerHTML = html;
-}
-
-// --- Fees ---
-function renderFees(){
-  area.innerHTML = `
-    <div class="h6">Update Fee</div>
-    <div class="form-row">
-      <input id="f_roll" placeholder="Student Roll / ID">
-      <input id="f_amount" placeholder="Amount">
-      <select id="f_method"><option>Cash</option><option>UPI</option><option>Card</option></select>
-      <button class="primary" onclick="saveFee()">Save Fee</button>
-      <div id="f_msg" class="note"></div>
-      <div id="fee_list" class="note"></div>
-    </div>
-  `;
-  loadFeesList();
-}
-
-async function saveFee(){
-  const roll = document.getElementById('f_roll').value.trim();
-  const amount = parseFloat(document.getElementById('f_amount').value);
-  const method = document.getElementById('f_method').value;
-
-  if(!roll || isNaN(amount)){
-    document.getElementById('f_msg').innerText = 'Roll and numeric amount required';
-    return;
-  }
-  // update student feePaid (simple add)
-  // fetch current
-  const { data: student } = await supabase.from('students').select('id,feePaid').eq('roll', roll).limit(1);
-  if(!student || !student.length){ document.getElementById('f_msg').innerText = 'Student not found'; return; }
-  const sid = student[0].id;
-  const cur = parseFloat(student[0].feePaid || 0);
-  const newAmt = cur + amount;
-
-  const { error } = await supabase.from('students').update({ feePaid: newAmt }).eq('id', sid);
-  if(error){ document.getElementById('f_msg').innerText = error.message; return; }
-
-  // record in fees table
-  await supabase.from('fees').insert({ id: genId(), student_id: sid, amount, method });
-
-  document.getElementById('f_msg').innerText = 'Fee recorded';
-  loadFeesList();
-}
-
-async function loadFeesList(){
-  const { data, error } = await supabase.from('fees').select('*').order('paid_on', { ascending:false }).limit(50);
-  if(error){ document.getElementById('fee_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('fee_list').innerText = 'No fees yet'; return; }
-  let html = '<table class="table"><tr><th>Student</th><th>Amount</th><th>Method</th><th>Date</th></tr>';
-  for(const f of data){
-    // try to get student name
-    let name = f.student_id;
-    try{
-      const res = await supabase.from('students').select('name').eq('id', f.student_id).limit(1);
-      if(res.data && res.data.length) name = res.data[0].name;
-    }catch(e){}
-    html += `<tr><td>${name}</td><td>${f.amount}</td><td>${f.method}</td><td>${new Date(f.paid_on).toLocaleString()}</td></tr>`;
-  }
-  html += '</table>';
-  document.getElementById('fee_list').innerHTML = html;
-}
-
-// --- Homework ---
-function renderHomework(){
-  area.innerHTML = `
-    <div class="h6">Upload Homework</div>
-    <div class="form-row">
-      <input id="hw_title" placeholder="Title (optional)">
-      <input id="hw_file" type="file">
-      <button class="primary" onclick="uploadHomework()">Upload</button>
-      <div id="hw_msg" class="note"></div>
-      <div id="hw_list" class="note"></div>
-    </div>
-  `;
-  loadHomeworkList();
-}
-
-async function uploadHomework(){
-  const fileInput = document.getElementById('hw_file');
-  const title = document.getElementById('hw_title').value || '';
-  if(!fileInput.files.length){ document.getElementById('hw_msg').innerText='Choose file'; return; }
-  const file = fileInput.files[0];
-  const path = `homework/${genId()}_${file.name}`;
-  const { error } = await supabase.storage.from('homework').upload(path, file, { upsert: true });
-  if(error){ document.getElementById('hw_msg').innerText = error.message; return; }
-
-  // get public URL
-  const { data: urlData } = supabase.storage.from('homework').getPublicUrl(path);
-  const publicUrl = urlData ? urlData.publicUrl : null;
-
-  await supabase.from('homework').insert({ id: genId(), title, file_url: publicUrl, date: new Date().toLocaleDateString() });
-  document.getElementById('hw_msg').innerText = 'Uploaded';
-  fileInput.value = '';
-  loadHomeworkList();
-}
-
-async function loadHomeworkList(){
-  const { data, error } = await supabase.from('homework').select('*').order('date', { ascending:false }).limit(50);
-  if(error){ document.getElementById('hw_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('hw_list').innerText = 'No homework'; return; }
-  let html = '<ul>';
-  data.forEach(h => {
-    html += `<li>${h.title || 'File'} — <a href="${h.file_url}" target="_blank">Open</a> <span class="kv">(${h.date})</span></li>`;
-  });
-  html += '</ul>';
-  document.getElementById('hw_list').innerHTML = html;
-}
-
-// --- Notices ---
-function renderNotice(){
-  area.innerHTML = `
-    <div class="h6">Post Notice</div>
-    <div class="form-row">
-      <input id="notice_msg" placeholder="Notice text">
-      <button class="primary" onclick="postNotice()">Post</button>
-      <div id="notice_info" class="note"></div>
-      <div id="notice_list" class="note"></div>
-    </div>
-  `;
-  loadNotices();
-}
-
-async function postNotice(){
-  const msg = document.getElementById('notice_msg').value.trim();
-  if(!msg){ document.getElementById('notice_info').innerText = 'Enter notice'; return; }
-  const { error } = await supabase.from('notices').insert({ id: genId(), message: msg, date: new Date().toLocaleDateString() });
-  if(error){ document.getElementById('notice_info').innerText = error.message; return; }
-  document.getElementById('notice_info').innerText = 'Posted';
-  document.getElementById('notice_msg').value='';
-  loadNotices();
-}
-
-async function loadNotices(){
-  const { data, error } = await supabase.from('notices').select('*').order('date', { ascending:false }).limit(50);
-  if(error){ document.getElementById('notice_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('notice_list').innerText = 'No notices'; return; }
-  let html = '<ul>';
-  data.forEach(n => html += `<li>${n.message} <span class="kv">(${n.date})</span></li>`);
-  html += '</ul>';
-  document.getElementById('notice_list').innerHTML = html;
-}
-
-// --- Teacher panel (simple) ---
-function renderTeacherPanel(){
-  area.innerHTML = `
-    <div class="h6">Teacher Panel</div>
-    <div class="form-row">
-      <input id="t_class" placeholder="Enter class (eg 10th)">
-      <button class="primary" onclick="loadClassStudents()">Load Students</button>
-      <div id="teacher_list" class="note"></div>
-    </div>
-  `;
-}
-
-async function loadClassStudents(){
-  const cls = document.getElementById('t_class').value.trim();
-  if(!cls){ document.getElementById('teacher_list').innerText='Enter class'; return; }
-  const { data, error } = await supabase.from('students').select('*').eq('class', cls).order('name');
-  if(error){ document.getElementById('teacher_list').innerText = error.message; return; }
-  if(!data || !data.length){ document.getElementById('teacher_list').innerText='No students'; return; }
-  let html = '<table class="table"><tr><th>Roll</th><th>Name</th><th>Present</th></tr>';
-  data.forEach(s => {
-    html += `<tr><td>${s.roll}</td><td>${s.name}</td><td><button onclick="markAttendanceFor('${s.roll}', true)" class="small">P</button> <button onclick="markAttendanceFor('${s.roll}', false)" class="small">A</button></td></tr>`;
-  });
-  html += '</table>';
-  document.getElementById('teacher_list').innerHTML = html;
-}
-
-async function markAttendanceFor(roll, present){
-  const { error } = await supabase.from('attendance').insert({ id: genId(), date: new Date().toLocaleDateString(), roll, present });
-  if(error) alert(error.message);
-  else alert('Marked');
-    }    area.innerHTML = `
-      <h3>Upload Homework</h3>
-      <input type="file" id="hwFile">
-      <button onclick="uploadHW()">Upload</button>
-    `;
-  }
-  else if(type === 'notice'){
-    area.innerHTML = `
-      <h3>New Notice</h3>
-      <textarea id="nt" placeholder="Write Notice"></textarea>
-      <button onclick="postNotice()">Post</button>
-    `;
-  }
-};
-
-// Add Student
-window.addStudent = async function(){
-  const {error} = await supabaseClient.from('students').insert({
-    id: sroll.value,
-    name: sname.value,
-    class: sclass.value,
-    phone: sphone.value
+  const { error } = await supabase.from("teachers").insert({
+    id: crypto.randomUUID(),
+    email: email.toLowerCase(),
+    name
   });
 
-  if(error) return alert(error.message);
-  alert("Student Added");
-};
+  if (error) return alert(error.message);
 
-// Attendance
-window.markPresent = async function(){
-  const {error} = await supabaseClient.from('attendance').insert({
-    date: date.value,
-    roll: roll.value,
-    present: true
-  });
+  alert("Teacher Added ✔");
+}
 
-  if(error) return alert(error.message);
-  alert("Attendance Saved");
-};
+async function demoteTeacher(email) {
+  if (!email) return alert("Email required");
 
-// Fee Update
-window.updateFee = async function(){
-  const { error } = await supabaseClient
-    .from('students')
-    .update({ feePaid: paid.value })
-    .eq('id', froll.value);
+  const { error } = await supabase
+    .from("teachers")
+    .delete()
+    .eq("email", email.toLowerCase());
 
-  if(error) return alert(error.message);
-  alert("Fee Updated");
-};
+  if (error) return alert(error.message);
 
-// Upload Homework
-window.uploadHW = async function(){
-  let file = hwFile.files[0];
-  let name = Date.now()+"-"+file.name;
-
-  let { data, error } = await supabaseClient
-    .storage.from("homework")
-    .upload(name, file);
-
-  if(error) return alert(error.message);
-
-  let url = supabaseClient.storage.from("homework").getPublicUrl(name).data.publicUrl;
-
-  await supabaseClient.from("homework").insert({ url });
-
-  alert("Uploaded!");
-};
-
-// Notice
-window.postNotice = async function(){
-  const {error} = await supabaseClient.from("notices").insert({
-    text: nt.value
-  });
-
-  if(error) return alert(error.message);
-  alert("Notice Posted!");
-};
+  alert("Removed ✔");
+}
