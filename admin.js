@@ -12,6 +12,58 @@ function show(type){
   else if(type === 'teacher') renderTeacherPanel();
 }
 
+// --- Admin extra utilities ---
+
+// Promote a user to teacher table (create teacher)
+async function promoteToTeacher(email, name = 'Teacher') {
+  if(!email) return alert('Email required');
+  const { error } = await supabase.from('teachers').insert({
+    id: crypto.randomUUID(),
+    name,
+    email: email.toLowerCase()
+  });
+  if(error) return alert('Promote error: ' + error.message);
+  alert('Promoted to teacher');
+}
+
+// Demote (remove) teacher by email
+async function demoteTeacher(email) {
+  if(!email) return alert('Email required');
+  const { error } = await supabase.from('teachers').delete().eq('email', email.toLowerCase());
+  if(error) return alert('Demote error: ' + error.message);
+  alert('Teacher removed');
+}
+
+// Student search (partial)
+async function adminSearchStudent(q) {
+  if(!q) return alert('Enter search text');
+  const { data, error } = await supabase.from('students').select('*')
+    .or(`name.ilike.%${q}%,roll.ilike.%${q}%`).limit(50);
+  if(error) return alert(error.message);
+  // simple display
+  let html = '<table class="table"><tr><th>Roll</th><th>Name</th><th>Class</th></tr>';
+  data.forEach(s => html += `<tr><td>${s.roll}</td><td>${s.name}</td><td>${s.class}</td></tr>`);
+  html += '</table>';
+  document.getElementById('area').innerHTML = html;
+}
+
+// Export attendance (admin)
+async function adminExportAttendance(cls, fromDate, toDate) {
+  const { data, error } = await supabase.from('attendance').select('*')
+    .gte('date', fromDate).lte('date', toDate).order('date', { ascending: true });
+  if(error) return alert(error.message);
+  // map names
+  const rolls = [...new Set(data.map(r => r.roll))];
+  const { data: studs } = await supabase.from('students').select('roll,name').in('roll', rolls);
+  const nameMap = {}; (studs||[]).forEach(s => nameMap[s.roll]=s.name);
+  let csv = 'roll,name,date,present\n';
+  data.forEach(r => csv += `${r.roll},"${(nameMap[r.roll]||'')}",${r.date},${r.present}\n`);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `attendance_${fromDate}_${toDate}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
 function renderAddStudent(){
   area.innerHTML = `
     <div class="h6">Add Student</div>
