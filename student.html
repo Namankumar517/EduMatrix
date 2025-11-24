@@ -1,18 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Student Panel</title>
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EduMatrix — Student</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-<h2>Homework</h2>
-<div id="hw"></div>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo">
+        <div class="dot">E</div>
+        <div>
+          <div style="font-size:14px;opacity:.9">EduMatrix</div>
+          <div style="font-size:11px;opacity:.8">Student Panel</div>
+        </div>
+      </div>
 
-<h2>Notices</h2>
-<div id="notices"></div>
+      <div style="margin-left:auto" class="row">
+        <button class="small" onclick="location.href='index.html'">Logout</button>
+      </div>
+    </div>
 
-<script src="student.js"></script>
+    <div style="margin-top:14px" class="card">
+      <div class="h6">Homework</div>
+      <div id="hw" class="note">Loading homework...</div>
+    </div>
+
+    <div class="card">
+      <div class="h6">Notices</div>
+      <div id="notices" class="note">Loading notices...</div>
+    </div>
+  </div>
+
+  <script src="student.js"></script>
 </body>
 </html>
