@@ -1,58 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>EduMatrix — Student</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase.js"></script>
+  <script src="/student.js" defer></script>
 </head>
 <body>
 
+<!-- protect: redirect to login if not signed in -->
 <script>
 (async () => {
   const { data } = await supabase.auth.getSession();
-  if (!data?.session) window.location.href = "index.html";
+  if (!data?.session) window.location.href = "/index.html";
 })();
 </script>
 
-<div class="container">
-  <div class="topbar">
-    <div class="logo"><div class="dot">E</div><div><div style="font-size:14px;opacity:.9">EduMatrix</div><div style="font-size:11px;opacity:.8">Student Panel</div></div></div>
-    <div style="margin-left:auto" class="row">
-      <button class="small" onclick="logoutUser()">Logout</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="h6">Homework</div>
-    <div id="hw" class="note">Loading...</div>
-  </div>
-
-  <div class="card">
-    <div class="h6">Notices</div>
-    <div id="notices" class="note">Loading...</div>
-  </div>
-
-  <div class="card">
-    <div class="h6">My Attendance</div>
-    <div id="myAttendance" class="note">Click to view</div>
-    <div style="margin-top:8px" class="row">
-      <input id="viewRoll" placeholder="Enter your roll/id" />
-      <button class="primary small" onclick="viewMyAttendance()">View</button>
-    </div>
+<div class="topbar">
+  <div style="font-weight:700">EduMatrix — Student</div>
+  <div>
+    <button class="small" onclick="logoutUser()">Logout</button>
   </div>
 </div>
 
-<script src="/student.js"></script>
+<div class="grid wrapper">
 
-<script>
-async function logoutUser() {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-}
-</script>
+  <!-- SIDEBAR (top on mobile) -->
+  <div class="sidebar card">
+    <div style="font-weight:700;margin-bottom:8px">Menu</div>
+    <button class="menu-btn" onclick="showStudent('dashboard')">🏠 Dashboard</button>
+    <button class="menu-btn" onclick="showStudent('attendance')">📝 Attendance</button>
+    <button class="menu-btn" onclick="showStudent('fees')">💰 Fees</button>
+    <button class="menu-btn" onclick="showStudent('homework')">📁 Homework</button>
+    <button class="menu-btn" onclick="showStudent('notices')">📢 Notices</button>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="studentArea" class="main-content card">
+    Loading student panel...
+  </div>
+
+</div>
 
 </body>
 </html>
