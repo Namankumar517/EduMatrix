@@ -5,13 +5,8 @@
   <title>EduMatrix – Admin Dashboard</title>
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <!-- Your Supabase config -->
   <script src="supabase.js"></script>
-
-  <!-- Your App Logic -->
   <script src="app.js" defer></script>
 
   <style>
@@ -30,36 +25,35 @@
       font-weight: 600;
       border-radius: 0 0 20px 20px;
     }
-    .menu {
+    .grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 12px;
+      padding: 15px;
+    }
+    .sidebar {
       background: white;
       padding: 15px;
-      margin: 15px;
       border-radius: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .menu-btn {
-      display: flex;
-      align-items: center;
       padding: 12px;
       margin-bottom: 10px;
       background: #f8f9ff;
       border-radius: 12px;
       cursor: pointer;
-      transition: 0.2s;
       font-size: 16px;
     }
     .menu-btn:hover {
       background: #e6ecff;
-      transform: scale(1.02);
     }
     .main-content {
       background: white;
-      margin: 15px;
       padding: 20px;
       border-radius: 20px;
       min-height: 200px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      font-size: 16px;
     }
     button.logout {
       background: white;
@@ -84,47 +78,62 @@
     <button class="logout" onclick="logoutUser()">Logout</button>
   </div>
 
-  <!-- SIDEBAR MENU -->
-  <div class="menu">
+  <!-- GRID LAYOUT (Sidebar + Main) -->
+  <div class="grid">
 
-    <div class="menu-btn" onclick="loadAddStudent()">
-      ➕ Add Student
-    </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div style="margin-bottom:8px;font-weight:700">Menu</div>
 
-    <div class="menu-btn" onclick="loadAttendance()">
-      📒 Attendance
-    </div>
+      <div class="menu-btn" onclick="loadAddStudent()">➕ Add Student</div>
+      <div class="menu-btn" onclick="loadAttendance()">📒 Attendance</div>
+      <div class="menu-btn" onclick="loadFees()">💰 Fees</div>
+      <div class="menu-btn" onclick="loadTeacherPanel()">👩‍🏫 Teacher Panel</div>
+      <div class="menu-btn" onclick="loadHomework()">📁 Homework</div>
+      <div class="menu-btn" onclick="loadNotice()">📢 Notice</div>
 
-    <div class="menu-btn" onclick="loadFees()">
-      💰 Fees
-    </div>
+      <hr style="margin:12px 0;opacity:.4">
 
-    <div class="menu-btn" onclick="loadTeacherPanel()">
-      👩‍🏫 Teacher Panel
-    </div>
+      <div class="menu-btn" onclick="showTeacherManagement()">⚙️ Teacher Management</div>
+    </aside>
 
-    <div class="menu-btn" onclick="loadHomework()">
-      📁 Homework
-    </div>
 
-    <div class="menu-btn" onclick="loadNotice()">
-      📢 Notice
+    <!-- MAIN CONTENT -->
+    <div id="main" class="main-content">
+      <b>Welcome – Select an action from the left</b><br>
+      <span style="opacity:.6">All changes save to Supabase instantly.</span>
     </div>
 
   </div>
 
-  <div style="margin-top:12px">
-  <input id="prom_email" placeholder="teacher email">
-  <input id="prom_name" placeholder="teacher name">
-  <button onclick="promoteToTeacher(document.getElementById('prom_email').value, document.getElementById('prom_name').value)">Promote</button>
-  <button onclick="demoteTeacher(document.getElementById('prom_email').value)">Demote</button>
-  </div>
 
-  <!-- MAIN CONTENT -->
-  <div id="main" class="main-content">
-    <b>Welcome – Select an action from the left</b><br>
-    <span style="opacity:.6">All changes save to Supabase instantly.</span>
-  </div>
+  <!-- TEACHER MANAGEMENT UI (Loaded on click) -->
+  <script>
+    function showTeacherManagement() {
+      document.getElementById("main").innerHTML = `
+        <h3>Teacher Management</h3>
+
+        <input id="prom_email" placeholder="Teacher email" class="input"><br><br>
+        <input id="prom_name" placeholder="Teacher name" class="input"><br><br>
+
+        <button class="primary"
+          onclick="promoteToTeacher(
+            document.getElementById('prom_email').value,
+            document.getElementById('prom_name').value
+          )">Promote</button>
+
+        <button class="small" style="background:#ffcece;color:#900;margin-left:8px"
+          onclick="demoteTeacher(
+            document.getElementById('prom_email').value
+          )">Demote</button>
+
+        <div class="note" style="margin-top:12px">
+          Promote = Teacher Panel access<br>
+          Demote = Remove teacher access
+        </div>
+      `;
+    }
+  </script>
 
 </body>
 </html>
