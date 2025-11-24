@@ -1,22 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>EduMatrix Login</title>
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EduMatrix — Login</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-<div class="container">
-  <h2>EduMatrix Login</h2>
+  <div class="container" style="max-width:420px">
+    <div class="topbar" style="justify-content:center">
+      <div class="logo">
+        <div class="dot">E</div>
+        <div style="text-align:left">
+          <div style="font-size:16px">EduMatrix</div>
+          <div style="font-size:12px;opacity:.85">Coaching Panel</div>
+        </div>
+      </div>
+    </div>
 
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
+    <div class="card" style="margin-top:18px">
+      <div class="h6">Sign in</div>
 
-  <button onclick="loginUser()">Login</button>
-  <p id="msg"></p>
-</div>
+      <div class="form-row">
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <button class="primary" onclick="loginUser()">Login</button>
+        <div id="msg" class="note"></div>
+      </div>
+    </div>
+  </div>
 
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
